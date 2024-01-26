@@ -12,32 +12,10 @@ class GptInstruction {
   }
 }
 
-let ReactDeveloper = new GptInstruction(
-  "React Developer",
-  "I am an student learning frontend development. I have previous experience in typescript javascript and python. ",
-  "You are an react developer with a decade year of experience and you have built multiple products using react and you have worked in companies like Facebook stripe Microsoft.",
-  "For learning frontend development"
-);
-
-let deepLearningExpert = new GptInstruction(
-  "Deep Learning Expert",
-  "I am a seasoned professional specializing in deep learning and artificial intelligence.",
-  "You are a highly skilled deep learning expert with decades of experience.",
-  "deep learning (tf and cnn)"
-);
-
-let golangLearner = new GptInstruction(
-  "Golang",
-  "I am an enthusiastic learner Go programming language from scratch. I have previous background of C++ and python.",
-  "You are a go developer with many years of experience and knows all best practices for programming in golang, including concurrency, code structure. For deepening my understanding of Go, provide code examples for common challenges, and ensure the programs are optimized. Share insights on best practices, concurrency, and effective use of Go features.",
-  "For learning go"
-);
-
-
 // POPUP FUNCTION
 // ----------------------------------------------------------------------------------
 // ----------------------------------------------------------------------------------
-function Popup({setEditingInstruction, openEditPage , deleteCustomInstruction, customInstructions = []}) {
+function Popup({ setEditingInstruction, openEditPage, deleteCustomInstruction, customInstructions = [] }) {
   const [contextMenuPosition, setContextMenuPosition] = useState({ x: 0, y: 0 });
   const [selectedInstruction, setSelectedInstruction] = useState(null);
 
@@ -45,6 +23,19 @@ function Popup({setEditingInstruction, openEditPage , deleteCustomInstruction, c
     event.preventDefault();
     setSelectedInstruction(instruction);
     setContextMenuPosition({ x: event.clientX, y: event.clientY });
+
+    const aboutYouTextArea = document.querySelector('#aboutYou');
+    const responsePreferenceTextArea = document.querySelector('#responsePreference');
+
+    if (aboutYouTextArea && responsePreferenceTextArea) {
+      aboutYouTextArea.value = instruction.user_profile;
+      responsePreferenceTextArea.value = instruction.gpt_profile;
+    }
+
+    const textAreas = document.querySelectorAll('textarea');
+    for (const textArea of textAreas) {
+      textArea.value = instruction.user_profile;
+    }
   };
 
 
@@ -54,6 +45,20 @@ function Popup({setEditingInstruction, openEditPage , deleteCustomInstruction, c
     openEditPage();
   };
   
+  const handleExportToJSON = () => {
+    const jsonContent = JSON.stringify(customInstructions, null, 2);
+
+    const blob = new Blob([jsonContent], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'customInstructions.json';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
 
   const handleDeleteFunction = () => {
     console.log("Delete clicked for:", selectedInstruction);
@@ -83,6 +88,9 @@ function Popup({setEditingInstruction, openEditPage , deleteCustomInstruction, c
       <div style={{ display: "flex", justifyContent: "flex-end" }}>
         <button className="button" onClick={handleCreateNew}>
           Create new
+        </button>
+        <button className="button" onClick={handleExportToJSON}>
+          Export to JSON
         </button>
       </div>
 
@@ -135,10 +143,10 @@ function CustomInstructionMenu({ onClose, addCustomInstruction, customInstructio
       <input type="text" id="description" name="description" className="input" value={description} onChange={(e) => setDescription(e.target.value)} />
 
       <label htmlFor="aboutYou" className="label">What would you like ChatGPT to know about you to provide better responses?</label>
-      <textarea id="aboutYou" name="aboutYou" className="textarea" value={aboutYou} onChange={(e) => setAboutYou(e.target.value)}></textarea>
+      <textarea style={{ resize: 'vertical' }} id="aboutYou" name="aboutYou" className="textarea" value={aboutYou} onChange={(e) => setAboutYou(e.target.value)}></textarea>
 
       <label htmlFor="responsePreference" className="label">How would you like ChatGPT to respond?</label>
-      <textarea id="responsePreference" name="responsePreference" className="textarea" value={responsePreference} onChange={(e) => setResponsePreference(e.target.value)}></textarea>
+      <textarea style={{ resize: 'vertical' }} id="responsePreference" name="responsePreference" className="textarea" value={responsePreference} onChange={(e) => setResponsePreference(e.target.value)}></textarea>
       
       <br />
       <div className="button-container">
@@ -151,25 +159,27 @@ function CustomInstructionMenu({ onClose, addCustomInstruction, customInstructio
   );
 }
 
+// APP ENTRY-POINT
+// ----------------------------------------------------------------------------------
+// ----------------------------------------------------------------------------------
 function App() {
-  const [customInstructions, setCustomInstructions] = useState([
-    ReactDeveloper,
-    deepLearningExpert,
-    golangLearner
-  ]);
+  const [customInstructions, setCustomInstructions] = useState([]);
   const [currentPage, setcurrentPage] = useState("Popup");
   const [editingInstruction, setEditingInstruction] = useState(null);
 
   const deleteCustomInstruction = (instructionToDelete) => {
     chrome.storage.sync.get(['customInstructions'], (result) => {
       const storedInstructions = result.customInstructions || [];
-      const updatedInstructions = storedInstructions.filter((instruction) => instruction !== instructionToDelete);
-
+      const updatedInstructions = storedInstructions.filter(
+        (instruction) => instruction.title !== instructionToDelete.title
+      );
+  
       chrome.storage.sync.set({ customInstructions: updatedInstructions }, () => {
         setCustomInstructions(updatedInstructions);
       });
     });
   };
+  
 
   const loadCustomInstructionsFromStorage = () => {
     chrome.storage.sync.get(['customInstructions'], (result) => {
@@ -185,13 +195,15 @@ function App() {
   const addCustomInstruction = (newInstruction) => {
     chrome.storage.sync.get(['customInstructions'], (result) => {
       const storedInstructions = result.customInstructions || [];
-
+  
       const updatedInstructions = editingInstruction
         ? storedInstructions.map((instruction) =>
-            instruction === editingInstruction ? { ...instruction, ...newInstruction } : instruction
+            instruction.title === editingInstruction.title
+              ? { ...instruction, ...newInstruction }
+              : instruction
           )
         : [...storedInstructions, newInstruction];
-
+  
       chrome.storage.sync.set({ customInstructions: updatedInstructions }, () => {
         setCustomInstructions(updatedInstructions);
         setEditingInstruction(null);
