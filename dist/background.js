@@ -1,0 +1,1 @@
+chrome.runtime.onMessage.addListener((function(e,n,i){e.action}));

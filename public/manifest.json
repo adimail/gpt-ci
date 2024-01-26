@@ -1,0 +1,27 @@
+{
+  "name": "GPT CI",
+  "description": "Manage chat GPT custom instructions",
+  "permissions": ["storage", "tabs"],
+  "host_permissions": ["https://chat.openai.com/*"],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": ["https://chat.openai.com/*"],
+      "js": ["contentScript.js"]
+    }
+  ],
+  "version": "0.1.0",
+  "action": {
+    "default_popup": "popup.html"
+  },
+  "icons": {
+    "16": "icon.png",
+    "48": "icon.png",
+    "128": "icon.png"
+  },
+  "default_title": "GPT Custom Instructions",
+  "manifest_version": 3
+}
+  
