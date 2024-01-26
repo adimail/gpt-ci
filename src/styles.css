@@ -1,0 +1,88 @@
+.popup {
+    padding: 5px 5px;
+    width: 380px;
+  }
+  
+  .heading {
+    color: #158c6f;
+    text-align: center;
+  }
+  
+  .input {
+    width: 100%;
+    margin-bottom: 16px;
+    padding: 8px;
+    border-radius: 4px;
+    box-sizing: border-box;
+  }
+  
+  .label {
+    color: white;
+    margin-bottom: 8px;
+    display: block;
+  }
+  
+  .textarea {
+    width: 100%;
+    height: 100px;
+    margin-bottom: 16px;
+    padding: 8px;
+    border-radius: 4px;
+    box-sizing: border-box;
+  }
+  
+  .button-container {
+    display: flex;
+    justify-content: flex-end;
+  }
+  
+  .button {
+    margin-left: 8px;
+    padding: 8px 16px;
+    border-radius: 4px;
+    cursor: pointer;
+    background-color: #4a6f9e;
+    color: white;
+    border: none;
+  }
+  
+  .scrollable-div {
+    max-height: 158px;
+    overflow-y: auto;
+    scrollbar-color: white #363636;
+    scrollbar-width: thin;
+  }
+  
+  .scrollable-div::-webkit-scrollbar {
+    width: 8px;
+  }
+  
+  .scrollable-div::-webkit-scrollbar-thumb {
+    background-color: #363636;
+    border-radius: 8px;
+  }
+  
+  
+  .cibutton {
+    width: 95%;
+    text-align: left;
+    padding: 6px 12px;
+    margin-bottom: 6px;
+    background-color: #158c6f;
+    color: #ffffff;
+    border: none;
+    border-radius: 12px;
+    cursor: pointer;
+    overflow: hidden;
+  }
+  
+  .title {
+    font-size: 16px;
+    font-weight: bold;
+    margin-bottom: 4px;
+  }
+  
+  .description {
+    font-size: 10px;
+  }
+  
