@@ -6,7 +6,7 @@ module.exports = {
   mode: 'production',
   entry: {
     popup: './src/popup.jsx',
-    contentscript: './src/contentscript.jsx',
+    contentscript: './src/contentScript.jsx',
     background: './src/background.jsx',
   },
   output: {
