@@ -10,8 +10,7 @@
   },
   "content_scripts": [
     {
-      "matches": ["https://chat.openai.com/*"],
-      "js": ["contentScript.js"]
+      "matches": ["https://chat.openai.com/*"]
     }
   ],
   "version": "0.1.0",
