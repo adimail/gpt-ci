@@ -25,8 +25,8 @@ Chrome extension to save prompts for chat GPT custom instructions.
 
 # Screenshots
 
-![Popup Window](repo/main.png)
-![Custom Instruction](repo/inst.png)
+![Popup Window](assets/main.png)
+![Custom Instruction](assets/inst.png)
 
 # Use cases
 
