@@ -9,6 +9,7 @@ Chrome extension to save prompts for chat GPT custom instructions.
 
 # Usage
 
+- download/clone this repository
 - open [chrome://extensions/](chrome://extensions/) in your browser
 - turn on the developer mode
 - select `load unpacked` button
@@ -20,7 +21,8 @@ Chrome extension to save prompts for chat GPT custom instructions.
     - Add instructions
     - edit them
     - delete them
-    - export them to JSON
+    - export CIs to JSON
+    - import CIs from JSON
     - simple, fast & fun
 
 # Screenshots
@@ -34,6 +36,7 @@ Chrome extension to save prompts for chat GPT custom instructions.
 - craft instructions for specific tasks or topics, enabling ChatGPT to better understand and respond in a targeted manner.
 - easily switch between different sets of instructions based on the context of your conversation, ensuring that ChatGPT adapts to different scenarios.
 - export instructions to a JSON file allows users to share your custom instruction sets with others or backup your configurations.
+- import instructions from a json file
 - iteratively refine their instructions to achieve the desired level of response accuracy and style from ChatGPT.
 
 # What else?
