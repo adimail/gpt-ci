@@ -15,7 +15,14 @@ class GptInstruction {
 // POPUP FUNCTION
 // ----------------------------------------------------------------------------------
 // ----------------------------------------------------------------------------------
-function Popup({ setEditingInstruction, openEditPage, deleteCustomInstruction, customInstructions = [] }) {
+function Popup({ 
+  handleImportFromJSON, 
+  setEditingInstruction, 
+  openEditPage, 
+  deleteCustomInstruction, 
+  handleExportToJSON,
+  customInstructions = [] 
+}) {
   const [contextMenuPosition, setContextMenuPosition] = useState({ x: 0, y: 0 });
   const [selectedInstruction, setSelectedInstruction] = useState(null);
 
@@ -41,24 +48,10 @@ function Popup({ setEditingInstruction, openEditPage, deleteCustomInstruction, c
 
   const handleEdit = () => {
     console.log("Edit clicked for:", selectedInstruction);
-    setEditingInstruction(selectedInstruction);
+    const updatedInstruction = { ...selectedInstruction, lastEditedDate: new Date() };
+    setEditingInstruction(updatedInstruction);
     openEditPage();
-  };
-  
-  const handleExportToJSON = () => {
-    const jsonContent = JSON.stringify(customInstructions, null, 2);
-
-    const blob = new Blob([jsonContent], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'customInstructions.json';
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-  };
+  };  
 
   const handleDeleteFunction = () => {
     console.log("Delete clicked for:", selectedInstruction);
@@ -70,6 +63,11 @@ function Popup({ setEditingInstruction, openEditPage, deleteCustomInstruction, c
     openEditPage();
   };
 
+  const handleDoubleClick = (instruction) => {
+    setEditingInstruction(instruction);
+    openEditPage();
+  };
+
   return (
     <div className="popup">
       <h1 className="heading">GPT Custom Instructions</h1>
@@ -77,7 +75,7 @@ function Popup({ setEditingInstruction, openEditPage, deleteCustomInstruction, c
       <div className="scrollable-div">
         {customInstructions.map((obj, index) => (
           <div key={index} onContextMenu={(e) => handleContextMenu(e, obj)}>
-            <button className="cibutton">
+            <button className="cibutton" onDoubleClick={() => handleDoubleClick(obj)}>
               <div className="title">{obj.title}</div>
               <div className="description">{obj.description}</div>
             </button>
@@ -92,6 +90,17 @@ function Popup({ setEditingInstruction, openEditPage, deleteCustomInstruction, c
         <button className="button" onClick={handleExportToJSON}>
           Export to JSON
         </button>
+      
+        <input
+          type="file"
+          accept=".json"
+          onChange={handleImportFromJSON}
+          style={{ display: "none" }}
+          id="fileInput"
+        />
+        <label htmlFor="fileInput" className="button">
+          Import from JSON
+        </label>
       </div>
 
       {selectedInstruction && (
@@ -199,10 +208,17 @@ function App() {
       const updatedInstructions = editingInstruction
         ? storedInstructions.map((instruction) =>
             instruction.title === editingInstruction.title
-              ? { ...instruction, ...newInstruction }
+              ? { ...instruction, ...newInstruction, lastEditedDate: new Date() }
               : instruction
           )
-        : [...storedInstructions, newInstruction];
+        : [
+            ...storedInstructions,
+            {
+              ...newInstruction,
+              createdDate: new Date(),
+              lastEditedDate: new Date(),
+            },
+          ];
   
       chrome.storage.sync.set({ customInstructions: updatedInstructions }, () => {
         setCustomInstructions(updatedInstructions);
@@ -212,6 +228,8 @@ function App() {
     });
   };
   
+  
+  
   const openEditPage = () => {
     setcurrentPage("CustomInstructionMenu")
   }
@@ -220,6 +238,81 @@ function App() {
     setcurrentPage("Popup")
   }
 
+  const handleExportToJSON = () => {
+    const orderedInstructions = customInstructions.map(({ title, description, user_profile, gpt_profile, createdDate, lastEditedDate }) => ({
+      title,
+      description,
+      user_profile,
+      gpt_profile,
+      createdDate,
+      lastEditedDate,
+    }));
+  
+    const jsonContent = JSON.stringify(orderedInstructions, null, 2);
+  
+    const blob = new Blob([jsonContent], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+  
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'customInstructions.json';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
+
+  const handleImportFromJSON = (event) => {
+    const fileInput = event.target;
+    const file = fileInput.files[0];
+  
+    if (!file) {
+      console.error("No file selected.");
+      return;
+    }
+  
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const importedInstructions = JSON.parse(e.target.result);
+  
+        if (Array.isArray(importedInstructions)) {
+          const uniqueImportedInstructions = importedInstructions.filter((importedInstr) => {
+            return !customInstructions.some((existingInstr) =>
+              areInstructionsEqual(existingInstr, importedInstr)
+            );
+          });
+  
+          if (uniqueImportedInstructions.length > 0) {
+            const mergedInstructions = [...customInstructions, ...uniqueImportedInstructions];
+            setCustomInstructions(mergedInstructions);
+            chrome.storage.sync.set({ customInstructions: mergedInstructions });
+          } else {
+            console.error("All imported instructions are duplicates.");
+          }
+        } else {
+          console.error("Invalid JSON format. Expected an array.");
+        }
+      } catch (error) {
+        console.error("Error parsing JSON file.", error);
+      }
+  
+      fileInput.value = "";
+    };
+  
+    reader.readAsText(file);
+  };
+  
+  // Helper function
+  const areInstructionsEqual = (instr1, instr2) => {
+    return (
+      instr1.title === instr2.title &&
+      instr1.description === instr2.description &&
+      instr1.user_profile === instr2.user_profile &&
+      instr1.gpt_profile === instr2.gpt_profile
+    );
+  };
+  
   return (
     <div>
       {currentPage === "Popup" && 
@@ -228,6 +321,8 @@ function App() {
           deleteCustomInstruction={deleteCustomInstruction}
           openEditPage={openEditPage}
           setEditingInstruction={setEditingInstruction}
+          handleImportFromJSON={handleImportFromJSON}
+          handleExportToJSON={handleExportToJSON}
         />
       }
       {currentPage === "CustomInstructionMenu" && 
